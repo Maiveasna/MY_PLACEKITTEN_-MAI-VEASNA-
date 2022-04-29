@@ -1,6 +1,27 @@
-# MY_PLACEKITTEN_-MAI-VEASNA
 
-PLACEKITTEN APPLICATION
+# PLACEKITTEN
 
-DOC API :
+### API DOC
+
 https://documenter.getpostman.com/view/5578104/RWgqUxxh
+
+## Run
+
+
+```bash
+  yarn
+```
+
+```bash
+  cd ios && pod install
+```
+
+```bash
+  yarn ios
+```
+
+
+## Author
+
+- [@maiveasna](https://github.com/Maiveasna)
+
