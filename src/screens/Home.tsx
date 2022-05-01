@@ -14,7 +14,9 @@ import { actionCreator } from "../redux";
 import { State } from "../redux/reducer";
 import ImageRatio from "../components/image/ImageRatio";
 import CardImage from "../components/card-image";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const KEY = "IMAGE"
 const initialUrl = "/v1/images/search?size=med&mime_type=jpg,png&has_breeds=1" // initial url
 
 export const  fetchData = async ({url} : {url : string}) => {
@@ -38,10 +40,26 @@ const HomeScreen = ({navigation , route} : Props) => {
    
 useMemo( async () => {
     try {
-       await  fetchData({url : initialUrl + "&limit=30"}).then((res) => {
+       const dataLocal = await AsyncStorage.getItem(KEY)
+      if(dataLocal){
+        const tempData = JSON.parse(dataLocal) 
+        dispatchSetImages(tempData[30]as ItemType[])
+        setLoading(false)
+      }else  {
+         await  fetchData({url : initialUrl + "&limit=30"}).then( async (res) => {
           dispatchSetImages(res as ItemType[])
+          const  getData = await AsyncStorage.getItem(KEY)
+          const  tempData =  JSON.parse(getData)
+          const  localData = {
+            ...tempData ,
+           [30] : res as ItemType[],
+         }
+          AsyncStorage.setItem(KEY, JSON.stringify(localData))
           setLoading(false)
-       })
+        })
+      }
+      console.log("ddpppp" , dataLocal)
+     
     } catch (error) {
        console.log("ERROR FIRST LOAD DATA :::" , error)
        setLoading(false)
@@ -51,12 +69,28 @@ useMemo( async () => {
    
    const handleDataPagination = async ({ page} : { page : number}) => {
         setLoading(true)
-        const data = await  fetchData({url : `${initialUrl}&limit=${page}`})
-       if(data) {
-         dispatchSetImagesByPagination(data)
-         setLoading(false)
-       }
+        const  getData = await AsyncStorage.getItem(KEY)
+        const  tempData =  JSON.parse(getData)
+        if(tempData[page]) {
+          dispatchSetImagesByPagination(tempData[page])
+          setLoading(false)
+        }else  {
+          const data = await  fetchData({url : `${initialUrl}&limit=${page}`})
+          const  localData = {
+            ...tempData ,
+           [page] : data as ItemType[],
+         }
+          await AsyncStorage.setItem(KEY, JSON.stringify(localData))
+          if(data) {
+            dispatchSetImagesByPagination(data)
+            setLoading(false)
+          }
+        }
+        
+        
+     
    }
+   
    
     if(loading) {
       return <View style={{ flex : 1 , justifyContent : 'center', alignItems : "center"}}>
